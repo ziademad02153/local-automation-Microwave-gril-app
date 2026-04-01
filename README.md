@@ -1,86 +1,126 @@
-# Microwave Automation Testing System
+<div align="center">
+  <h1>Enterprise Microwave QA Automation Framework</h1>
+  <h3>Industrial Hardware-in-the-Loop (HIL) Testing & Telemetry Analysis</h3>
 
-Author: ziad emad allam
+  <p>
+    <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
+    <img src="https://img.shields.io/badge/PyQt5-41CD52?style=for-the-badge&logo=qt&logoColor=white" alt="PyQt5" />
+    <img src="https://img.shields.io/badge/nidaqmx-0055A5?style=for-the-badge&logo=nationalinstruments&logoColor=white" alt="NI DAQmx" />
+    <img src="https://img.shields.io/badge/NumPy-013243?style=for-the-badge&logo=numpy&logoColor=white" alt="NumPy" />
+    <img src="https://img.shields.io/badge/PyQtGraph-8CAAEE?style=for-the-badge&logo=python&logoColor=white" alt="PyQtGraph" />
+    <img src="https://img.shields.io/badge/OpenPyXL-150458?style=for-the-badge&logo=microsoftexcel&logoColor=white" alt="Excel Data Export" />
+  </p>
+</div>
 
-## Overview
-This project is a professional automated testing system for microwave ovens. It uses Python, PyQt5 for the GUI, and DAQ hardware for real signal acquisition. The system is designed for industrial-level analysis, including sector-based Defrost mode, and generates detailed Excel reports.
+## Executive Summary
+The **Microwave Automation Testing System** is an industrial-grade Python software infrastructure engineered to execute rigorous autonomous Quality Assurance (QA) on microwave oven hardware. Utilizing a native architecture bound directly to physical DAQ (Data Acquisition) hardware, the system dynamically ingests real-time, multi-channel telemetry—including Microwave, Grill, Lamp, Door Switch, and Buzzer signals—to enforce absolute operational compliance and safety standards.
 
-## File Structure & Deep Explanation
-- `main.py`: The main entry point and GUI controller. It:
-  - Initializes the application and main window.
-  - Manages user interaction, including starting/stopping tests, saving data, and displaying real-time signal status.
-  - Integrates the state machine to control microwave operation modes.
-  - Handles event logging, warnings, and updates all UI elements (icons, graphs, statistics).
-  - Calls DAQHandler for data acquisition and analysis, and ExcelWriter for report generation.
-  - Implements DefrostDialog for sector calculation and user input in Defrost mode.
-
-- `daq_handler.py`: The DAQ logic and analysis engine. It:
-  - Connects to the DAQ device and reads all signal channels (Microwave, Grill, Lamp, Door SW, Buzzer).
-  - Buffers and timestamps all acquired data for later analysis.
-  - Calculates power percentages for each signal using configurable thresholds and sample windows.
-  - Implements sector-based Defrost logic: calculates sector timings and expected power for each sector based on weight, and analyzes Pass/Fail for each sector individually.
-  - Provides industrial Pass/Fail analysis for all modes, including detailed results and warnings (e.g., door opens, MW+Grill overlap).
-  - Exports all recorded data for reporting.
-
-- `config.py`: Central configuration and constants. It:
-  - Defines device/channel mappings, voltage thresholds, and signal names.
-  - Sets all tolerances, Defrost sector definitions (percentages, expected power, timings), and Excel columns.
-  - Contains all icon symbols and theme colors for the GUI.
-
-- `excel_writer.py`: Excel report generator. It:
-  - Creates and manages Excel workbooks.
-  - Writes all raw test data, summary statistics, and Pass/Fail results (including sector results for Defrost mode).
-  - Ensures reports are formatted and saved correctly for industrial documentation.
-
-- `state_machine.py`: Microwave state machine. It:
-  - Defines all operational states (Idle, Running, Paused, etc.) and transitions.
-  - Ensures correct sequencing and logic for each microwave mode, including Defrost and Child Lock.
-
-- `__pycache__/`: Python bytecode cache. Not user-editable, auto-generated for faster execution.
-- `.venv/`: Python virtual environment. Contains all installed libraries for this project only.
-
-## How to Run
-1. **Environment Setup**
-   - Install Python 3.8+.
-   - Create and activate a virtual environment:
-     ```powershell
-     python -m venv .venv
-     .venv\Scripts\activate
-     ```
-2. **Install Required Libraries**
-   - Install dependencies:
-     ```powershell
-     pip install -r requirements.txt
-     ```
-3. **Connect DAQ Hardware**
-   - Connect and configure your DAQ device as specified in `config.py`.
-4. **Run the Application**
-   - Start the GUI:
-     ```powershell
-     python main.py
-     ```
-
-## Required Libraries
-- PyQt5: For GUI components and dialogs.
-- nidaqmx: For DAQ device communication and data acquisition.
-- openpyxl: For Excel report generation and saving.
-- pyqtgraph: For real-time signal plotting and visualization.
-- numpy: For efficient data handling and calculations.
-
-All libraries are listed in `requirements.txt`.
-
-## Features (Deep)
-- **Real-Time Signal Monitoring**: All five signals are displayed live with icons, graphs, and statistics. Signal status is updated every second.
-- **Industrial Pass/Fail Analysis**: All modes are analyzed using configurable tolerances. Defrost mode uses sector-based analysis, checking each sector's measured power against expected values.
-- **Defrost Sector Logic**: Defrost mode divides the test into three sectors, each with its own timing and expected power. The system calculates sector boundaries based on sample weight and analyzes each sector individually for Pass/Fail.
-- **Automated Excel Reporting**: All test data, statistics, and results (including sector results) are saved in a formatted Excel file for documentation and review.
-- **Professional GUI**: Modern design, event logging, warnings, and user-friendly controls. All thresholds, icons, and colors are configurable in `config.py`.
-- **State Machine Control**: Ensures correct operation and transitions for all microwave modes, including safety features like Child Lock and overlap detection.
-
-## Notes
-- Code is modular, clean, and documented for easy maintenance and extension.
-- For troubleshooting, check DAQ connection, library installation, and configuration in `config.py`.
-- The system is designed for industrial and laboratory environments, with a focus on reliability and accuracy.
+By integrating complex deterministic State Machines and mathematically rigorous Sector-Based Defrost analytical logic, the platform completely automates Pass/Fail validation criteria and translates high-frequency raw signal data into comprehensive, enterprise-ready Excel diagnostic matrices.
 
 ---
-Project by ziad emad allam
+
+## 1. Hardware-Software Operational Topology
+The system abstracts physical hardware intricacies through a strictly partitioned codebase, ensuring UI responsiveness remains uncompromised during high-frequency DAQ polling sequences.
+
+```mermaid
+graph TD
+    subgraph "External Hardware (Microwave Lab)"
+        HW[Physical Relays & Sensors] -->|Analog/Digital IO| DAQ[NI DAQ Acquisition Node]
+    end
+
+    subgraph "Data Parsing Core (daq_handler.py)"
+        DAQ --> BUFFER[Telemetry Timestamp Buffer]
+        BUFFER --> CALC[Power Output Percentage Engine]
+        BUFFER --> DEFROST[Sector-Based Defrost Logic]
+        CALC --> PASS_FAIL{Industrial Pass/Fail Validator}
+        DEFROST --> PASS_FAIL
+    end
+
+    subgraph "Presentation & State (main.py)"
+        PASS_FAIL --> GUI[PyQt5 Command Center UI]
+        PASS_FAIL --> REPORT[ExcelWriter Node]
+        GUI --> STATE[state_machine.py Context Controller]
+        STATE --> BUFFER
+    end
+
+    classDef hardware fill:#450a0a,stroke:#ef4444,stroke-width:2px,color:#fff;
+    classDef processing fill:#172554,stroke:#3b82f6,stroke-width:2px,color:#fff;
+    classDef presentation fill:#14532d,stroke:#10b981,stroke-width:2px,color:#fff;
+
+    class HW,DAQ hardware;
+    class BUFFER,CALC,DEFROST,PASS_FAIL processing;
+    class GUI,REPORT,STATE presentation;
+```
+
+---
+
+## 2. Core Architectural Components
+
+### Presentation & UX
+- `main.py`: The primary asynchronous controller bridging the user execution thread to the underlying hardware polling loops. It manages event logging, dynamic configuration of thresholds, and updates real-time `pyqtgraph` visual statistics without interface latency.
+- `DefrostDialog`: A specialized computational UI class initializing user weight parameters to dynamically project and enforce rigorous chronological sector milestones.
+
+### Acquisition & Analytics
+- `daq_handler.py`: The computational nucleus. Connects via `nidaqmx` to orchestrate multi-channel parsing. It calculates strict power percentages bounded by configurable micro-windows and identifies critical industrial safety violations (e.g., catastrophic simultaneous MW+Grill signal overlaps, or Door-Open logic breaks).
+- `config.py`: The centralized constants parameterization vault. Isolates device channel mappings, deterministic tolerance thresholds, sector definitions, and GUI theme directives strictly away from execution logic.
+
+### Reporting & State Governance
+- `excel_writer.py`: Programmatically interfaces with `openpyxl` to autonomously construct highly formatted Excel workbooks. It flushes raw arrays, statistical summaries, and sector-by-sector Pass/Fail matrices into immutable industrial documentation formats.
+- `state_machine.py`: Enforces operational immutability. Maps transitional matrices (Idle, Running, Paused) to prevent chaotic execution cycles and hard-stops the hardware processes during safety interrupts like Child Lock engagements.
+
+---
+
+## 3. Sector-Based Defrost Algorithmic Execution
+Due to the non-linear thermal dynamics of industrial microwave defrosting algorithms, the system divides temporal executions into three strict validation sectors.
+
+```mermaid
+sequenceDiagram
+    participant Technician
+    participant StateMachine
+    participant DAQ_Engine
+    participant ExcelWriter
+    
+    Technician->>StateMachine: Input Sample Mass (kg) & Initiate Defrost
+    StateMachine->>DAQ_Engine: Dispatch Calculated Sector [1, 2, 3] Constraints
+    
+    loop Sector Validation Cycle (High-Frequency Polling)
+        DAQ_Engine->>DAQ_Engine: Buffer Telemetry & Calculate Power Integration
+        
+        alt Actual Power Ratio == Configured Expected Power
+            DAQ_Engine-->>DAQ_Engine: Append Sector Flag: PASS
+        else Power Boundary Violation Detected
+            DAQ_Engine-->>DAQ_Engine: Append Sector Flag: FAIL (Log Variance)
+        end
+    end
+    
+    StateMachine->>ExcelWriter: Signal Completion Matrix Flush
+    ExcelWriter-->>Technician: Export Absolute Diagnostics Workbook
+```
+
+---
+
+## ⚙️ Environment Setup & System Deployment
+
+To deploy the DAQ automation suite securely across laboratory environments:
+
+**1. Virtual Execution Environment Initialization**
+```bash
+python -m venv .venv
+# Activate environment (Windows)
+.venv\Scripts\activate
+```
+
+**2. Satisfy Dependency Graphs**
+```bash
+pip install -r requirements.txt
+```
+
+**3. Hardware Calibration & Execution**
+- Physically interface channels according to mappings strictly defined in `config.py`.
+- Initialize the primary control application:
+```bash
+python main.py
+```
+
+### Engineered & Architected by Ziad Emad
+*Establishing uncompromising industrial QA standards through deterministic software architecture.*
